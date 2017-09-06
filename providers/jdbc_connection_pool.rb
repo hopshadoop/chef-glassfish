@@ -29,6 +29,7 @@ action :create do
                  validationmethod: 'connection-validation-method',
                }
 
+
   Chef::Resource.resource_for_node(:glassfish_jdbc_connection_pool, node)::ATTRIBUTES.each do |attr|
     parameters[attr.key] = attr.arg
   end

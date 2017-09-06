@@ -16,6 +16,7 @@
 
 actions :create, :delete
 
+
 attribute :connectionpoolid, kind_of: String, required: true
 attribute :enabled, equal_to: [true, false, 'true', 'false'], default: true
 attribute :target, kind_of: String, default: 'server'

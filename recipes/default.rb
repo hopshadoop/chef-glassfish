@@ -57,6 +57,7 @@ directory node['glassfish']['base_dir'] do
   not_if { ::File.exist?(node['glassfish']['base_dir']) }
 end
 
+
 a = archive 'glassfish' do
   prefix node['glassfish']['base_dir']
   url node['glassfish']['package_url']
