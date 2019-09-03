@@ -34,6 +34,9 @@ attribute :precompile_jsp, equal_to: [true, false, 'true', 'false'], default: tr
 attribute :async_replication, equal_to: [true, false, 'true', 'false'], default: true
 attribute :properties, kind_of: Hash, default: {}
 attribute :descriptors, kind_of: Hash, default: {}
+attribute :auth_username, :kind_of => String, :default => nil
+attribute :auth_password, :kind_of => String, :default => nil
+
 
 # <> @attribute libraries Array of JAR file names deployed as applibs which are used by this deployable.
 attribute :libraries, kind_of: Array, default: []
