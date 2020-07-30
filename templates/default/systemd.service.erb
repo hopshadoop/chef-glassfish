@@ -6,6 +6,7 @@ After = syslog.target network.target remote-fs.target mysqld.service
 [Service]
 
 User=<%= node['glassfish']['user'] %>
+ExecStartPre=/bin/bash -c 'sleep 5 && if systemctl list-units --full -all | grep -Fq 'mysqld.service'; then systemctl is-active --quiet mysqld; fi'
 ExecStart = <%= "#{prefix} #{@start_domain_command}" %>
 ExecStop = <%= "#{prefix} #{@stop_domain_command}" %>
 ExecReload = <%= "#{prefix} #{@restart_domain_command}" %>
