@@ -36,7 +36,7 @@ attribute :properties, kind_of: Hash, default: {}
 attribute :descriptors, kind_of: Hash, default: {}
 attribute :auth_username, :kind_of => String, :default => nil
 attribute :auth_password, :kind_of => String, :default => nil
-
+attribute :skipdsfailure, :equal_to => [true, false, 'true', 'false'], :default => true
 
 # <> @attribute libraries Array of JAR file names deployed as applibs which are used by this deployable.
 attribute :libraries, kind_of: Array, default: []
