@@ -19,18 +19,13 @@
 The LWRP retrieves an artifact of particular version from a url. The artifact is
 placed in a versioned directory and then a symlink is created from current version
 of the artifact to the retrieved version.
-
 The LWRP first creates a container directory based on the name and the prefix. Under the
 container directory, there is a directory in which all the versions of the artifact are
 stored. The LWRP will download the artifact and place it in this directory and then symlink
 the "current" directory to the downloaded artifact.
-
 By default the LWRP will retain the directory for the last artifact downloaded.
-
 @action add Download and extract archive.
-
 @section Examples
-
     # Download the myapp.zip archive, extract the archive, strip the
     # top level dir and place results into /usr/local/myapp/versions/1.0
     # and symlink /usr/local/myapp/versions/current to /usr/local/myapp/versions/1.0
@@ -41,7 +36,6 @@ By default the LWRP will retain the directory for the last artifact downloaded.
       group 'myapp'
       extract_action 'unzip_and_strip_dir'
     end
-
     # Download the myapp.zip archive, extract the archive, strip the
     # top level dir and place results into /usr/loca/myapp/versions/1.0
     # and symlink /usr/local/myapp/versions/current to /usr/local/myapp/versions/1.0
@@ -54,7 +48,6 @@ By default the LWRP will retain the directory for the last artifact downloaded.
       mode '0755'
       extract_action 'unzip_and_strip_dir'
     end
-
     # Download the myapp.jar and place set the attribute
     # myapp.home_dir to the container dir (i.e. /usr/local/myapp) and
     # myapp.jar_location to the downloaded jar. (i.e. /usr/local/myapp/pkg/current/myapp-1.0.jar)
@@ -64,7 +57,6 @@ By default the LWRP will retain the directory for the last artifact downloaded.
       owner 'myapp'
       group 'myapp'
     end
-
 #>
 =end
 
@@ -130,3 +122,4 @@ end
 def target_artifact
   "#{target_directory}/#{local_filename}"
 end
+

@@ -16,7 +16,7 @@
 
 actions :create, :delete
 
-
+attribute :instance_name, kind_of: String, name_attribute: true
 attribute :poolname, kind_of: String
 attribute :enabled, equal_to: [true, false, 'true', 'false'], default: true
 attribute :target, kind_of: String, default: 'server'

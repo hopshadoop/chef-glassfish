@@ -267,8 +267,6 @@ gf_sort(node['glassfish']['domains']).each_pair do |domain_key, definition|
   system_username = definition['config']['system_user']
   system_group = definition['config']['system_group']
 
-  # include_recipe 'authbind' if (definition['config']['port'] && definition['config']['port'] < 1024) || (admin_port && admin_port < 1024)
-
   if definition['config']['portbase']
     raise 'Glassfish admin port is automatically calculated from portbase. Please do not set both.' if definition['config']['admin_port']
     portbase = definition['config']['portbase']
@@ -343,15 +341,6 @@ gf_sort(node['glassfish']['domains']).each_pair do |domain_key, definition|
     end
   end
 
-# Start Hopsworks Hack
-case node["platform_family"]
-when "rhel"
-  kagent_config "glassfish-domain1" do
-    action :systemd_reload
-  end
-end  
-# Stop Hopsworks Hack
-  
   Chef::Log.info "Defining GlassFish Domain #{domain_key} - caching properties"
   glassfish_property_cache "#{domain_key} Cache" do
     domain_name domain_key
@@ -396,6 +385,15 @@ end
       requires_restart requires_restart
     end
   end
+
+  # Start Hopsworks Hack
+  case node["platform_family"]
+  when "rhel"
+    kagent_config "glassfish-domain1" do
+      action :systemd_reload
+    end
+  end  
+  # Stop Hopsworks Hack
 
   Chef::Log.info "Defining GlassFish Domain #{domain_key} - threadpools"
 

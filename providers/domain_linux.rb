@@ -42,7 +42,7 @@ action :create do
     end
   end
 
-  requires_authbind = new_resource.port < 1024 || new_resource.admin_port < 1024
+  requires_authbind = new_resource.port < 1024 || new_resource.admin_port < 1024 || new_resource.https_port < 1024
 
   service service_name do
     supports start: true, restart: true, stop: true, status: true
@@ -188,7 +188,7 @@ action :create do
     SH
   end
 
-  template "/etc/init.d/#{service_name}" do
+  template "/lib/systemd/system/#{service_name}.service" do
     not_if { new_resource.systemd_enabled }
     case node['platform_family']
     when 'debian'
@@ -210,7 +210,7 @@ action :create do
     notifies :restart, "service[#{service_name}]", :delayed
   end
 
-  template "/etc/systemd/system/#{service_name}.service" do
+  template "/lib/systemd/system/#{service_name}.service" do
     only_if { new_resource.systemd_enabled }
     source 'systemd.service.erb'
     mode '0644'
@@ -245,7 +245,7 @@ action :destroy do
     action :delete
   end
 
-  file "/etc/systemd/system/#{service_name}.service" do
+  file "/lib/systemd/system/#{service_name}.service" do
     action :delete
   end
 

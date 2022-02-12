@@ -35,9 +35,9 @@ include_recipe 'glassfish::derive_version'
 include_recipe 'java' if node.linux?
 
 group node['glassfish']['group'] do
-  not_if { node.windows? }
   not_if "getent group #{node['glassfish']['group']}"
   not_if { node['install']['external_users'].casecmp("true") == 0 }
+  not_if { node.windows? }
 end
 
 user node['glassfish']['user'] do
@@ -47,7 +47,6 @@ user node['glassfish']['user'] do
   shell '/bin/bash'
   system true
   not_if { node.windows? }
-  not_if "getent passwd #{node['glassfish']['user']}"
   not_if { node['install']['external_users'].casecmp("true") == 0 }
 end
 
@@ -61,8 +60,8 @@ directory node['glassfish']['base_dir'] do
   not_if { ::File.exist?(node['glassfish']['base_dir']) }
 end
 
-
-a = archive 'glassfish' do
+#a = archive 'glassfish' do
+a = glassfish_archive 'glassfish' do
   prefix node['glassfish']['base_dir']
   url node['glassfish']['package_url']
   version node['glassfish']['version']
@@ -73,10 +72,7 @@ a = archive 'glassfish' do
   extract_action 'unzip_and_strip_dir'
 end
 
-exists_at_run_start = ::File.exist?(a.target_directory)
-
-# node.override['glassfish']['install_dir'] = a.current_directory
-node.override['glassfish']['install_dir'] = a.target_directory
+node.override['glassfish']['install_dir'] = a.current_directory
 
 exists_at_run_start = ::File.exist?(node['glassfish']['install_dir'])
 
