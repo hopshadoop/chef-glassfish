@@ -72,8 +72,8 @@ action :deploy do
     if new_resource.auth_username and new_resource.auth_password
       headers['Authorization'] = "Basic #{ Base64.encode64("#{new_resource.auth_username}:#{new_resource.auth_password}").gsub("\n", "") }"
     end
-    #a = archive new_resource.component_name do
-    a = glassfish_archive new_resource.component_name do
+    a = archive new_resource.component_name do
+    #a = glassfish_archive new_resource.component_name do
       prefix archives_dir
       url new_resource.url
       headers headers

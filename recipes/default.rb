@@ -65,11 +65,10 @@ a = glassfish_archive 'glassfish' do
   prefix node['glassfish']['base_dir']
   url node['glassfish']['package_url']
   version node['glassfish']['version']
-  unless node.windows?
-    owner node['glassfish']['user']
-    group node['glassfish']['group']
-  end
-  extract_action 'unzip_and_strip_dir'
+  owner node['glassfish']['user']
+  group node['glassfish']['group']
+  action 'unzip_and_strip_dir'
+  # extract_action 'unzip_and_strip_dir'
 end
 
 node.override['glassfish']['install_dir'] = a.current_directory
