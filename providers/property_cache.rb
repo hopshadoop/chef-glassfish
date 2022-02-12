@@ -1,5 +1,5 @@
 #
-# Copyright Peter Donald
+# Copyright:: Peter Donald
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,16 +14,24 @@
 # limitations under the License.
 #
 
+require 'English'
+
 include Chef::Asadmin
 
-use_inline_resources
-
 action :create do
-  output = `#{asadmin_command("get '*'", true, :terse => true, :echo => false)}`
-  raise "Error caching properties" unless $?.exitstatus.to_i == 0
+  command = shell_out(asadmin_command('get "*"', true, terse: true, echo: false))
+  output = command.stdout
+
+  raise 'Error caching properties' unless command.exitstatus.to_i == 0
+
+  separator = if node.windows?
+                "\r\n"
+              else
+                "\n"
+              end
 
   values = {}
-  output.split("\n").each do |line|
+  output.split(separator).each do |line|
     index = line.index('=')
     key = line[0, index]
     value = line[index + 1, line.size]

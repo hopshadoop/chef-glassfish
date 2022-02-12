@@ -1,5 +1,5 @@
-name             'glassfish'
-maintainer       'Peter Donald'
+name 'glassfish'
+maintainer 'Peter Donald'
 maintainer_email 'peter@realityforge.org'
 license          'Apache 2.0'
 description      'Installs/Configures GlassFish Application Server'
@@ -8,10 +8,12 @@ version          "3.1.0"
 
 supports 'ubuntu'
 supports 'debian'
+supports 'windows'
 
-# Compat resource is required for 12.5+ as resource API changed between 12.4 and 12.5
 depends 'compat_resource', '~> 12.19.0'
 
-depends 'authbind', '~> 0.1.10'
 depends 'java'
-
+depends 'authbind', '~> 0.1.10'
+depends 'archive'
+depends 'cutlery'
+depends 'runit'

@@ -1,15 +1,10 @@
 # Description
 
-[![Build Status](https://secure.travis-ci.org/realityforge/chef-glassfish.png?branch=master)](http://travis-ci.org/realityforge/chef-glassfish)
+[![Build Status](https://api.travis-ci.com/realityforge/chef-glassfish.svg?branch=master)](http://travis-ci.com/realityforge/chef-glassfish)
 
 The glassfish cookbook installs and configures the GlassFish application server and the OpenMQ message broker bundled
 with the GlassFish application server. The cookbook also defines resources to create and configure GlassFish
 application domains and OpenMQ broker instances.
-
-**NOTE**: If using chef client 12.5 or later then you will need to include the `compat_resource` cookbook as the
-chef client changed the resource API between versions 12.4 and 12.5. If you are using chef-server then it is necessary
-that the cookbook is uploaded to the server. A simpler solution may be to create a wrapper cookbook that depends on
-both the `glassfish` and `compat_resource` cookbooks.
 
 A sample project with a Vagrantfile that launches a glassfish instance is available in [chef-glassfish-example](https://github.com/realityforge/chef-glassfish-example) project.
 
@@ -18,12 +13,16 @@ A sample project with a Vagrantfile that launches a glassfish instance is availa
 ## Platform:
 
 * ubuntu
+* debian
+* windows
 
 ## Cookbooks:
 
-* compat_resource
 * java
 * authbind
+* archive
+* cutlery
+* runit
 
 # Attributes
 
@@ -32,7 +31,7 @@ A sample project with a Vagrantfile that launches a glassfish instance is availa
 * `node['glassfish']['version']` - Version: The version of the GlassFish install package. Defaults to `4.0`.
 * `node['glassfish']['variant']` - variant: The variant of the GlassFish install package. Usually payara or glassfish. Defaults to `glassfish`.
 * `node['glassfish']['package_url']` - Package URL: The url to the GlassFish install package. Defaults to `nil`.
-* `node['glassfish']['base_dir']` - GlassFish Base Directory: The base directory of the GlassFish install. Defaults to `/usr/local/glassfish`.
+* `node['glassfish']['base_dir']` - GlassFish Base Directory: The base directory of the GlassFish install. Defaults to `/usr/local/glassfish` (Linux) or `C:\glassfish` (Windows).
 * `node['glassfish']['install_dir']` - GlassFish Install Directory: The directory into which glassfish is actually installed. Defaults to `nil`.
 * `node['glassfish']['remove_domains_dir_on_install']` - A flag determining whether we should remove the domains directory. Defaults to `true`.
 * `node['glassfish']['domains_dir']` - GlassFish Domain Directory: The directory containing all the domain instance data and configuration. Defaults to `/srv/glassfish`.
@@ -563,6 +562,7 @@ Creates a GlassFish application domain, creates an OS-level service and starts t
 - realm_types: A map of names to realm implementation classes that is merged into the default realm types. Defaults to <code>{}</code>.
 - system_user: The user that the domain executes as. Defaults to `node['glassfish']['user']` if unset. Defaults to <code>nil</code>.
 - system_group: The group that the domain executes as. Defaults to `node['glassfish']['group']` if unset. Defaults to <code>nil</code>.
+- certificate_cn: The common name that should be used when generating the self-signed ssl certificate for the domain. Default to <code>nil</code>
 
 ### Examples
 

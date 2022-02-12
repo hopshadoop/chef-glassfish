@@ -1,5 +1,5 @@
 #
-# Copyright Peter Donald
+# Copyright:: Peter Donald
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ class Chef
       args << "-u #{options[:username]}"
       args << "-passfile #{options[:passfile]}"
 
-      "#{imqcmd_script(node)} #{args.join(" ")} #{command}"
+      "#{imqcmd_script(node)} #{args.join(' ')} #{command}"
     end
 
     def self.imqcmd_script(node)

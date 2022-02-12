@@ -1,4 +1,55 @@
-## v0.7.8 (Pending):
+## v1.2.7:
+* Enhance : Add support for Payara 5.2021.10
+
+## v1.2.6:
+* Fix : Fix thread pool comparison in attribute driven domain
+
+## v.1.2.5:
+* Fix : Revert Azul JDK specific JVM options from 1.2.2
+* Enhance : Improve JVM option parsing
+
+## v.1.2.3 - v.1.2.4
+* Unreleased
+
+## v.1.2.2:
+* Enhance : Better support for Payara 5.194+.
+
+## v.1.2.1:
+* Enhance : Add support for newer JVM 8 and Payara.
+
+## v.1.2.0:
+* Enhance : Add support for Chef infra client 16
+
+## v.1.1.1:
+* Enhance : Add support for Payara 5.192
+
+## v.1.1.0:
+* Enhance : Add support for Payara 5.184 and 5.191
+
+## v.1.0.2:
+* Enhance : Improve systemd restarting on failure
+* Enhance : Wait for Glassfish admin to be ready before adding a library
+
+## v1.0.1:
+* Fix     : Bugfix release to not change mode, owner or group of /usr/local
+
+## v1.0.0:
+* Enhance : Add support for Payara 5.183
+* Enhance : Add Windows support
+            Huge thanks to Akos Vandra @axos88 for work on this!
+* Enhance : Moved waiting for Glassfish to be up to library
+* Enhance : Use Mixlib::ShellOut for calling commands
+* Enhance : Add support for specifying self-signed certificate CN
+
+## v0.8.0:
+* Enhance : Add support to Payara 5.182
+* Fix     : Fix Cookstyle issues
+* Change  : Rename is_property_cache_present to property_cache_present
+* Enhance : Remove dependency of compat_resource cookbook (Works only on Chef 13 or above)
+* Change  : Rename glassfish_web_env_entry name to glassfish_web_env_entry_name
+* Enhance : Improvements based on Cookstyle and Foodcritic
+* Enhance : Add initial support for Payara 5.181
+* Change  : Drop support for Chef 12
 * Change  : Avoid specifying the user and group when executing asadmin commands if
             on the windows platform. Submitted by Akos Vandra.
 * Fix     : Start using the execute resource rather than the bash resource in preparation

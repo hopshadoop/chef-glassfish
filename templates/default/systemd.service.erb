@@ -5,9 +5,9 @@ After = syslog.target network.target remote-fs.target mysqld.service
 
 [Install]
 WantedBy = multi-user.target
+StartLimitIntervalSec=0
 
 [Service]
-
 User=<%= node['glassfish']['user'] %>
 ExecStart = <%= "#{prefix} #{@start_domain_command}" %>
 ExecStop = <%= "#{prefix} #{@stop_domain_command}" %>
@@ -23,4 +23,6 @@ EnvironmentFile=<%= @new_resource.env_var_file %>
 <% end -%>
 TimeoutStartSec = <%= @start_domain_timeout %>
 TimeoutStopSec = <%= @stop_domain_timeout %>
+Restart=always
+RestartSec=5
 
