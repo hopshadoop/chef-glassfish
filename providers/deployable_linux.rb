@@ -72,8 +72,8 @@ action :deploy do
     if new_resource.auth_username and new_resource.auth_password
       headers['Authorization'] = "Basic #{ Base64.encode64("#{new_resource.auth_username}:#{new_resource.auth_password}").gsub("\n", "") }"
     end
-    a = archive new_resource.component_name do
-    #a = glassfish_archive new_resource.component_name do
+    #a = archive new_resource.component_name do
+    a = glassfish_archive new_resource.component_name do
       prefix archives_dir
       url new_resource.url
       headers headers
@@ -146,7 +146,7 @@ action :deploy do
       args << a.target_artifact
 
       # execute should wait for asadmin to time out first, if it doesn't because of some problem, execute should time out eventually
-      timeout node['glassfish']['asadmin']['timeout'] + 5 + 5
+      timeout node['glassfish']['asadmin']['timeout'] + 5 + 5 + 800
       user new_resource.system_user unless node.windows?
       group new_resource.system_group unless node.windows?
       command asadmin_command(args.join(' '))
