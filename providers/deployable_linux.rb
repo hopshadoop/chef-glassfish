@@ -45,7 +45,7 @@ action :deploy do
   is_deployed = if cache_present
                   RealityForge::GlassFish.any_cached_property_start_with?(node, new_resource.domain_name, "applications.application.#{new_resource.component_name}.")
                 else
-                  !shell_out("#{asadmin_command('list-applications')} #{new_resource.target} | grep -- '#{new_resource.component_name} '").stdout.strip.split("\n").size.empty?
+                  !shell_out("#{asadmin_command('list-applications')} #{new_resource.target} | grep -- '#{new_resource.component_name} '").stdout.strip.split("\n").size.zero?
                 end
 
   plan_version = new_resource.descriptors.empty? ? nil : Asadmin.generate_component_plan_digest(new_resource.descriptors)
