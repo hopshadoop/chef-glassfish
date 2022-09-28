@@ -12,8 +12,8 @@
 # limitations under the License.
 #
 
-class RealityForge #nodoc
-  module GlassFish #nodoc
+class RealityForge
+  module GlassFish
     class << self
       # Return the current glassfish domain name
       #
@@ -49,10 +49,10 @@ class RealityForge #nodoc
 
       def any_cached_property_start_with?(node, domain_key, property_key)
         regex = /^#{Regexp.escape(property_key)}/
-        get_property_cache(node, domain_key).keys.any?{|k| k =~ regex }
+        get_property_cache(node, domain_key).keys.any? { |k| k =~ regex }
       end
 
-      def is_property_cache_present?(node, domain_key)
+      def property_cache_present?(node, domain_key)
         !!node.run_state["glassfish_properties_#{domain_key}"]
       end
 
@@ -72,6 +72,59 @@ class RealityForge #nodoc
 
       def get_cached_property(node, domain_key, key)
         get_property_cache(node, domain_key)[key] || ''
+      end
+
+      def url_responding_with_code?(url, username, password, code)
+        uri = URI(url)
+        res = nil
+        http = Net::HTTP.new(uri.hostname, uri.port)
+        if url =~ /https\:/
+          http.use_ssl = true
+          http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        end
+        http.start do |http| # rubocop:disable Lint/ShadowingOuterLocalVariable
+          request = Net::HTTP::Get.new(uri.request_uri)
+          request.basic_auth username, password
+          request['Accept'] = 'application/json'
+          res = http.request(request)
+        end
+        if res.code.to_s == code.to_s
+          Chef::Log.debug "GlassFish response OK - #{res.code} to #{url}"
+          return true
+        end
+        Chef::Log.debug "GlassFish not responding OK - #{res.code} to #{url}"
+      rescue StandardError => e # Fallback to secure/insecure
+        Chef::Log.info "GlassFish error while accessing web interface at #{url}"
+        Chef::Log.info e.message
+        Chef::Log.debug e.backtrace.join("\n")
+        false
+      end
+
+      def block_until_glassfish_up(username, password, ipaddress, admin_port)
+        require 'net/https'
+
+        fail_count = 0
+
+        # Looks like we need to check both http/https because secure_admin might or might not be enabled
+
+        http_base_url = "http://#{ipaddress}:#{admin_port}"
+        https_base_url = "https://#{ipaddress}:#{admin_port}"
+        http_nodes_url = "#{http_base_url}/management/domain/nodes"
+        https_nodes_url = "#{https_base_url}/management/domain/nodes"
+        http_applications_url = "#{http_base_url}/management/domain/applications"
+        https_applications_url = "#{https_base_url}/management/domain/applications"
+
+        loop do
+          raise 'GlassFish failed to become operational' if fail_count > 50
+          password = password
+          if (url_responding_with_code?(http_nodes_url, username, password, 200) || url_responding_with_code?(https_nodes_url, username, password, 200)) &&
+             (url_responding_with_code?(http_applications_url, username, password, 200) || url_responding_with_code?(https_applications_url, username, password, 200)) &&
+             (url_responding_with_code?(http_base_url, username, password, 200) || url_responding_with_code?(https_base_url, username, password, 200))
+            break
+          end
+          fail_count += 1
+          sleep 3
+        end
       end
     end
   end

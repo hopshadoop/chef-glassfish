@@ -1,5 +1,5 @@
 #
-# Copyright Peter Donald
+# Copyright:: Peter Donald
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,37 +16,37 @@
 
 include Chef::Asadmin
 
-use_inline_resources
-
 action :create do
-  cache_present = RealityForge::GlassFish.is_property_cache_present?(node, new_resource.domain_name)
-  may_need_create =
-    cache_present ?
-      !RealityForge::GlassFish.any_cached_property_start_with?(node, new_resource.domain_name, "resources.jdbc-resource.#{new_resource.name}.") :
-      true
+  cache_present = RealityForge::GlassFish.property_cache_present?(node, new_resource.domain_name)
+  may_need_create = if cache_present
+                      !RealityForge::GlassFish.any_cached_property_start_with?(node, new_resource.domain_name, "resources.jdbc-resource.#{new_resource.name}.")
+                    else
+                      true
+                    end
 
   if may_need_create
     args = []
     args << 'create-jdbc-resource'
     args << '--connectionpoolid' << new_resource.connectionpoolid
     args << '--property' << encode_parameters(new_resource.properties) unless new_resource.properties.empty?
-    args << '--description' << "'#{new_resource.description}'" if new_resource.description
+    args << '--description' << "\"#{new_resource.description}\"" if new_resource.description
     args << "--enabled=#{new_resource.enabled}" if new_resource.enabled
     args << asadmin_target_flag
     args << new_resource.name
 
     execute "asadmin_create_jdbc_resource #{new_resource.name}" do
-      unless cache_present
-        not_if "#{asadmin_command('list-jdbc-resources')} #{new_resource.target}| grep -F -x -- '#{new_resource.name}'", :timeout => node['glassfish']['asadmin']['timeout'] + 5
-      end
       timeout node['glassfish']['asadmin']['timeout'] + 5
-      user new_resource.system_user unless node['os'] == 'windows'
-      group new_resource.system_group unless node['os'] == 'windows'
+      user new_resource.system_user unless node.windows?
+      group new_resource.system_group unless node.windows?
       command asadmin_command(args.join(' '))
+      unless cache_present
+        filter = pipe_filter(new_resource.name, regexp: false, line: true)
+        not_if "#{asadmin_command('list-jdbc-resources')} #{new_resource.target} | #{filter}", timeout: node['glassfish']['asadmin']['timeout'] + 5
+      end
     end
   end
 
-  sets = {'pool-name' => new_resource.connectionpoolid, 'description' => new_resource.description}
+  sets = { 'pool-name' => new_resource.connectionpoolid, 'description' => new_resource.description }
   new_resource.properties.each_pair do |key, value|
     sets["property.#{key}"] = value
   end
@@ -66,27 +66,29 @@ action :create do
 end
 
 action :delete do
-  cache_present = RealityForge::GlassFish.is_property_cache_present?(node, new_resource.domain_name)
-  may_need_delete =
-    cache_present ?
-      RealityForge::GlassFish.any_cached_property_start_with?(node, new_resource.domain_name, "resources.jdbc-resource.#{new_resource.name}.") :
-      true
+  cache_present = RealityForge::GlassFish.property_cache_present?(node, new_resource.domain_name)
+  may_need_delete = if cache_present
+                      RealityForge::GlassFish.any_cached_property_start_with?(node, new_resource.domain_name, "resources.jdbc-resource.#{new_resource.name}.")
+                    else
+                      true
+                    end
 
   if may_need_delete
 
-    command = []
-    command << 'delete-jdbc-resource'
-    command << asadmin_target_flag
-    command << new_resource.name
+    args = []
+    args << 'delete-jdbc-resource'
+    args << asadmin_target_flag
+    args << new_resource.name
 
     execute "asadmin_delete_jdbc_resource #{new_resource.name}" do
-      unless cache_present
-        only_if "#{asadmin_command('list-jdbc-resources')} #{new_resource.target} | grep -F -x -- '#{new_resource.name}'", :timeout => node['glassfish']['asadmin']['timeout'] + 5
-      end
       timeout node['glassfish']['asadmin']['timeout'] + 5
-      user new_resource.system_user unless node['os'] == 'windows'
-      group new_resource.system_group unless node['os'] == 'windows'
-      command asadmin_command(command.join(' '))
+      user new_resource.system_user unless node.windows?
+      group new_resource.system_group unless node.windows?
+      command asadmin_command(args.join(' '))
+      unless cache_present
+        filter = pipe_filter(new_resource.name, regexp: false, line: true)
+        only_if "#{asadmin_command('list-jdbc-resources')} #{new_resource.target} | #{filter}", timeout: node['glassfish']['asadmin']['timeout'] + 5
+      end
     end
   end
 end

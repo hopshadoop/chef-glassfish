@@ -1,5 +1,5 @@
 #
-# Copyright James Walker
+# Copyright:: James Walker
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 include Chef::Asadmin
 
-use_inline_resources
-
 action :create do
   args = []
   args << 'create-jmsdest'
@@ -25,11 +23,12 @@ action :create do
   args << new_resource.name
 
   execute "asadmin_create-jmsdest #{new_resource.name}" do
-    not_if "#{asadmin_command('list-jmsdest')} | grep -F -x -- '#{new_resource.name}'", :timeout => node['glassfish']['asadmin']['timeout'] + 5
     timeout node['glassfish']['asadmin']['timeout'] + 5
-    user new_resource.system_user unless node['os'] == 'windows'
-    group new_resource.system_group unless node['os'] == 'windows'
+    user new_resource.system_user unless node.windows?
+    group new_resource.system_group unless node.windows?
     command asadmin_command(args.join(' '))
+    filter = pipe_filter(new_resource.name, regexp: false, line: true)
+    not_if "#{asadmin_command('list-jmsdest')} | #{filter}", timeout: node['glassfish']['asadmin']['timeout'] + 5
   end
 end
 
@@ -40,10 +39,11 @@ action :delete do
   args << new_resource.name
 
   execute "asadmin_delete-jmsdest #{new_resource.name}" do
-    only_if "#{asadmin_command('list-jmsdest')} | grep -F -x -- '#{new_resource.name}'", :timeout => node['glassfish']['asadmin']['timeout'] + 5
     timeout node['glassfish']['asadmin']['timeout'] + 5
-    user new_resource.system_user unless node['os'] == 'windows'
-    group new_resource.system_group unless node['os'] == 'windows'
+    user new_resource.system_user unless node.windows?
+    group new_resource.system_group unless node.windows?
     command asadmin_command(args.join(' '))
+    filter = pipe_filter(new_resource.name, regexp: false, line: true)
+    only_if "#{asadmin_command('list-jmsdest')} | #{filter}", timeout: node['glassfish']['asadmin']['timeout'] + 5
   end
 end

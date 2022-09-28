@@ -1,5 +1,5 @@
 #
-# Copyright Peter Donald
+# Copyright:: Peter Donald
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ def mq_config_settings(resource)
   # the file age (seconds). 0 means don't rollover based on that criteria.
   configs['imq.log.file.rolloverbytes'] = '268435456'
   configs['imq.log.file.rolloversecs'] = '604800'
-  configs['imq.log.file.dirpath'] = "${imq.instanceshome}${/}${imq.instancename}${/}log"
+  configs['imq.log.file.dirpath'] = '${imq.instanceshome}${/}${imq.instancename}${/}log'
   configs['imq.log.file.filename'] = 'omq.log'
   configs['imq.log.file.output'] = 'ERROR|WARNING'
 
@@ -67,9 +67,7 @@ def mq_config_settings(resource)
     configs['imq.bridge.stomp.logfile.count'] = '3'
   end
 
-  if services.size > 0
-    configs['imq.service.activelist'] = services.join(',')
-  end
+  configs['imq.service.activelist'] = services.join(',') unless services.size.empty?
 
   configs['imq.bridge.admin.user'] = resource.admin_user
   user = resource.users[resource.admin_user]
@@ -77,15 +75,13 @@ def mq_config_settings(resource)
   configs['imq.bridge.admin.password'] = user['password']
   configs['imq.imqcmd.password'] = user['password']
 
-  if bridges.size > 0
+  unless bridges.size.empty?
     configs['imq.bridge.enabled'] = 'true'
     configs['imq.bridge.activelist'] = bridges.join(',')
   end
 
   configs
 end
-
-use_inline_resources
 
 action :create do
   service_name = "omq-#{new_resource.instance}"
@@ -109,21 +105,21 @@ action :create do
 
   directory node['openmq']['var_home'] do
     recursive true
-    owner new_resource.system_user
-    group new_resource.system_group unless node['os'] == 'windows'
+    owner new_resource.system_user unless node.windows?
+    group new_resource.system_group unless node.windows?
     mode '0700'
   end
 
   directory "#{node['openmq']['var_home']}/instances" do
-    owner new_resource.system_user
-    group new_resource.system_group unless node['os'] == 'windows'
+    owner new_resource.system_user unless node.windows?
+    group new_resource.system_group unless node.windows?
     mode '0700'
   end
 
   %W(#{instance_dir} #{instance_dir}/etc #{instance_dir}/log #{instance_dir}/props #{instance_dir}/bin).each do |dir|
     directory dir do
-      owner new_resource.system_user
-      group new_resource.system_group unless node['os'] == 'windows'
+      owner new_resource.system_user unless node.windows?
+      group new_resource.system_group unless node.windows?
       mode '0700'
     end
   end
@@ -131,20 +127,20 @@ action :create do
   # Not sure why this is required... but something runs service as root which created this file as root owned
   file "#{instance_dir}/log/log.txt" do
     not_if { ::File.exist?("#{instance_dir}/log/log.txt") }
-    owner new_resource.system_user
-    group new_resource.system_group unless node['os'] == 'windows'
+    owner new_resource.system_user unless node.windows?
+    group new_resource.system_group unless node.windows?
     mode '0700'
     action :touch
   end
 
   file "#{instance_dir}/bin/#{new_resource.instance}_imqcmd" do
     mode '0700'
-    owner new_resource.system_user
-    group new_resource.system_group unless node['os'] == 'windows'
+    owner new_resource.system_user unless node.windows?
+    group new_resource.system_group unless node.windows?
     content <<-SH
 #!/bin/sh
 
-#{Imqcmd.imqcmd_command(node, '"$@"', :host => '127.0.0.1', :port => new_resource.port, :username => new_resource.admin_user, :passfile => passfile)}
+#{Imqcmd.imqcmd_command(node, '"$@"', host: '127.0.0.1', port: new_resource.port, username: new_resource.admin_user, passfile: passfile)}
     SH
   end
 
@@ -165,42 +161,48 @@ action :create do
   if new_resource.port < 1024
     authbind_port "AuthBind GlassFish OpenMQ Port #{new_resource.port}" do
       port new_resource.port
-      user new_resource.system_user unless node['os'] == 'windows'
+      user new_resource.system_user
+      not_if { os.windows? }
     end
   end
 
   if new_resource.jmx_port && new_resource.jmx_port < 1024
     authbind_port "AuthBind GlassFish OpenMQ JMX Port #{new_resource.jmx_port}" do
       port new_resource.jmx_port
-      user new_resource.system_user unless node['os'] == 'windows'
+      user new_resource.system_user
+      not_if { os.windows? }
     end
   end
 
   if new_resource.rmi_port && new_resource.rmi_port < 1024
     authbind_port "AuthBind GlassFish OpenMQ RMI Port #{new_resource.rmi_port}" do
       port new_resource.rmi_port
-      user new_resource.system_user unless node['os'] == 'windows'
+      user new_resource.system_user
+      not_if { os.windows? }
     end
   end
 
   if new_resource.admin_port && new_resource.admin_port < 1024
     authbind_port "AuthBind GlassFish OpenMQ Admin Port #{new_resource.admin_port}" do
       port new_resource.admin_port
-      user new_resource.system_user unless node['os'] == 'windows'
+      user new_resource.system_user
+      not_if { os.windows? }
     end
   end
 
   if new_resource.jms_port && new_resource.jms_port < 1024
     authbind_port "AuthBind GlassFish OpenMQ JMS Port #{new_resource.jms_port}" do
       port new_resource.jms_port
-      user new_resource.system_user unless node['os'] == 'windows'
+      user new_resource.system_user
+      not_if { os.windows? }
     end
   end
 
   if new_resource.stomp_port && new_resource.stomp_port < 1024
     authbind_port "AuthBind GlassFish OpenMQ Stomp Port #{new_resource.stomp_port}" do
       port new_resource.stomp_port
-      user new_resource.system_user unless node['os'] == 'windows'
+      user new_resource.system_user
+      not_if { os.windows? }
     end
   end
 
@@ -210,14 +212,14 @@ action :create do
       mode '0644'
       cookbook 'glassfish'
 
-      variables(:resource => new_resource,
-                :authbind => requires_authbind,
-                :vmargs => vm_args.join(' '))
+      variables(resource: new_resource,
+                authbind: requires_authbind,
+                vmargs: vm_args.join(' '))
     end
 
     service service_name do
       provider Chef::Provider::Service::Upstart
-      supports :start => true, :restart => true, :stop => true, :status => true
+      supports start: true, restart: true, stop: true, status: true
       action [:enable]
     end
   elsif new_resource.init_style == 'runit'
@@ -227,11 +229,11 @@ action :create do
       cookbook 'glassfish'
       run_template_name 'omq'
       check_script_template_name 'omq'
-      options(:instance_dir => instance_dir,
-              :instance_name => new_resource.instance,
-              :authbind => requires_authbind,
-              :vmargs => vm_args.join(' '),
-              :listen_ports => listen_ports)
+      options(instance_dir: instance_dir,
+              instance_name: new_resource.instance,
+              authbind: requires_authbind,
+              vmargs: vm_args.join(' '),
+              listen_ports: listen_ports)
       sv_timeout 300
       action [:nothing]
     end
@@ -241,20 +243,20 @@ action :create do
 
   if new_resource.jmx_port
     file "#{instance_dir}/etc/jmxremote.access" do
-      owner new_resource.system_user
-      group new_resource.system_group unless node['os'] == 'windows'
+      owner new_resource.system_user unless node.windows?
+      group new_resource.system_group unless node.windows?
       mode '0400'
       action :create
-      content (new_resource.jmx_admins.keys.sort.collect { |username| "#{username}=readwrite\n" } + new_resource.jmx_monitors.keys.sort.collect { |username| "#{username}=readonly\n" }).join("")
+      content (new_resource.jmx_admins.keys.sort.collect { |username| "#{username}=readwrite\n" } + new_resource.jmx_monitors.keys.sort.collect { |username| "#{username}=readonly\n" }).join('') # rubocop:disable Lint/ParenthesesAsGroupedExpression
       notifies :restart, service_resource_name, :delayed
     end
 
     file "#{instance_dir}/etc/jmxremote.password" do
-      owner new_resource.system_user
-      group new_resource.system_group unless node['os'] == 'windows'
+      owner new_resource.system_user unless node.windows?
+      group new_resource.system_group unless node.windows?
       mode '0400'
       action :create
-      content (new_resource.jmx_admins.sort.collect { |username, password| "#{username}=#{password}\n" } + new_resource.jmx_monitors.sort.collect { |username, password| "#{username}=#{password}\n" }).join("")
+      content (new_resource.jmx_admins.sort.collect { |username, password| "#{username}=#{password}\n" } + new_resource.jmx_monitors.sort.collect { |username, password| "#{username}=#{password}\n" }).join('') # rubocop:disable Lint/ParenthesesAsGroupedExpression
       notifies :restart, service_resource_name, :delayed
     end
   end
@@ -266,7 +268,7 @@ action :create do
       keep_existing = false
       if ::File.exist?(filename)
         IO.foreach(filename) do |line|
-          properties[$1.strip] = $2 if (line =~ /([^#=]+)=(.*)/)
+          properties[Regexp.last_match(1).strip] = Regexp.last_match(2) if line =~ /([^#=]+)=(.*)/
         end
         keep_existing = true
         mq_config_settings(new_resource).each do |k, v|
@@ -278,9 +280,9 @@ action :create do
     source 'config.properties.erb'
     mode '0600'
     cookbook 'glassfish'
-    owner new_resource.system_user
-    group new_resource.system_group unless node['os'] == 'windows'
-    variables(:configs => mq_config_settings(new_resource))
+    owner new_resource.system_user unless node.windows?
+    group new_resource.system_group unless node.windows?
+    variables(configs: mq_config_settings(new_resource))
     notifies :restart, service_resource_name, :delayed
   end
 
@@ -288,9 +290,9 @@ action :create do
     source 'logging.properties.erb'
     mode '0400'
     cookbook 'glassfish'
-    owner new_resource.system_user
-    group new_resource.system_group unless node['os'] == 'windows'
-    variables(:logging_properties => new_resource.logging_properties)
+    owner new_resource.system_user unless node.windows?
+    group new_resource.system_group unless node.windows?
+    variables(logging_properties: new_resource.logging_properties)
     notifies :restart, service_resource_name, :delayed
   end
 
@@ -298,18 +300,18 @@ action :create do
     source 'passwd.erb'
     mode '0400'
     cookbook 'glassfish'
-    owner new_resource.system_user
-    group new_resource.system_group unless node['os'] == 'windows'
-    variables(:users => new_resource.users)
+    owner new_resource.system_user unless node.windows?
+    group new_resource.system_group unless node.windows?
+    variables(users: new_resource.users)
   end
 
   template "#{instance_dir}/etc/accesscontrol.properties" do
     source 'accesscontrol.properties.erb'
     mode '0400'
     cookbook 'glassfish'
-    owner new_resource.system_user
-    group new_resource.system_group unless node['os'] == 'windows'
-    variables(:rules => new_resource.access_control_rules)
+    owner new_resource.system_user unless node.windows?
+    group new_resource.system_group unless node.windows?
+    variables(rules: new_resource.access_control_rules)
   end
 
   ruby_block service_resource_name do
@@ -349,7 +351,7 @@ action :destroy do
   if new_resource.init_style == 'upstart'
     service service_name do
       provider Chef::Provider::Service::Upstart
-      supports :start => true, :restart => true, :stop => true, :status => true
+      supports start: true, restart: true, stop: true, status: true
       action [:stop, :disable]
     end
 

@@ -1,5 +1,5 @@
 #
-# Copyright Peter Donald
+# Copyright:: Peter Donald
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,18 +16,20 @@
 
 include Chef::Asadmin
 
-use_inline_resources
-
 action :create do
-  cache_present = RealityForge::GlassFish.is_property_cache_present?(node, new_resource.domain_name)
-  may_need_create =
-    cache_present ?
-      !RealityForge::GlassFish.any_cached_property_start_with?(node, new_resource.domain_name, "resources.jdbc-connection-pool.#{new_resource.name}.") :
-      true
+  cache_present = RealityForge::GlassFish.property_cache_present?(node, new_resource.domain_name)
+  may_need_create = if cache_present
+                      !RealityForge::GlassFish.any_cached_property_start_with?(node, new_resource.domain_name, "resources.jdbc-connection-pool.#{new_resource.name}.")
+                    else
+                      true
+                    end
 
-  parameters = {:restype => 'res-type',
-                :isolationlevel => 'transaction-isolation-level',
-                :validationmethod => 'connection-validation-method'}
+  parameters = { restype: 'res-type',
+                 isolationlevel: 'transaction-isolation-level',
+                 validationmethod: 'connection-validation-method',
+               }
+
+  # Chef::Resource.resource_for_node(:glassfish_jdbc_connection_pool, node)::ATTRIBUTES.each do |attr|
   Chef::ResourceResolver.resolve(:glassfish_jdbc_connection_pool)::ATTRIBUTES.each do |attr|
     parameters[attr.key] = attr.arg
   end
@@ -40,28 +42,29 @@ action :create do
     end
 
     args << '--property' << encode_parameters(new_resource.properties) unless new_resource.properties.empty?
-    args << '--description' << "'#{new_resource.description}'" if new_resource.description
+    args << '--description' << "\"#{new_resource.description}\"" if new_resource.description
     args << new_resource.name
 
     execute "asadmin_create_jdbc_connection_pool #{new_resource.name}" do
       unless cache_present
-        not_if "#{asadmin_command('list-jdbc-connection-pools')} | grep -F -x -- '#{new_resource.name}'", :timeout => node['glassfish']['asadmin']['timeout'] + 5
+        filter = pipe_filter(new_resource.name, regexp: false, line: true)
+        not_if "#{asadmin_command('list-jdbc-connection-pools')} | #{filter}", timeout: node['glassfish']['asadmin']['timeout'] + 5
       end
       timeout node['glassfish']['asadmin']['timeout'] + 5
-      user new_resource.system_user unless node['os'] == 'windows'
-      group new_resource.system_group unless node['os'] == 'windows'
+      user new_resource.system_user unless node.windows?
+      group new_resource.system_group unless node.windows?
       command asadmin_command(args.join(' '))
     end
   end
 
   if !cache_present || !may_need_create
-    sets = {'description' => new_resource.description}
+    sets = { 'description' => new_resource.description }
     new_resource.properties.each_pair do |key, value|
       sets["property.#{key}"] = value
     end
 
     parameters.each do |key, mapping|
-      sets[mapping] = new_resource.send(key)
+      sets[mapping] = new_resource.send(key) if new_resource.send(key)
     end
 
     sets.each_pair do |key, value|
@@ -80,11 +83,12 @@ action :create do
 end
 
 action :delete do
-  cache_present = RealityForge::GlassFish.is_property_cache_present?(node, new_resource.domain_name)
-  may_need_delete =
-    cache_present ?
-      RealityForge::GlassFish.any_cached_property_start_with?(node, new_resource.domain_name, "resources.jdbc-connection-pool.#{new_resource.name}.") :
-      true
+  cache_present = RealityForge::GlassFish.property_cache_present?(node, new_resource.domain_name)
+  may_need_delete = if cache_present
+                      RealityForge::GlassFish.any_cached_property_start_with?(node, new_resource.domain_name, "resources.jdbc-connection-pool.#{new_resource.name}.")
+                    else
+                      true
+                    end
 
   if may_need_delete
     args = []
@@ -93,13 +97,14 @@ action :delete do
     args << new_resource.name
 
     execute "asadmin_delete_jdbc_connection_pool #{new_resource.name}" do
-      unless cache_present
-        only_if "#{asadmin_command('list-jdbc-connection-pools')} | grep -F -x -- '#{new_resource.name}'", :timeout => node['glassfish']['asadmin']['timeout'] + 5
-      end
       timeout node['glassfish']['asadmin']['timeout'] + 5
-      user new_resource.system_user unless node['os'] == 'windows'
-      group new_resource.system_group unless node['os'] == 'windows'
+      user new_resource.system_user unless node.windows?
+      group new_resource.system_group unless node.windows?
       command asadmin_command(args.join(' '))
+      unless cache_present
+        filter = pipe_filter(new_resource.name, regexp: false, line: true)
+        only_if "#{asadmin_command('list-jdbc-connection-pools')} | #{filter}", timeout: node['glassfish']['asadmin']['timeout'] + 5
+      end
     end
   end
 end
