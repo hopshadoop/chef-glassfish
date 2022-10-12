@@ -46,6 +46,7 @@ user node['glassfish']['user'] do
   home node['glassfish']['base_dir'] + '/glassfish'
   shell '/bin/bash'
   system true
+  not_if "getent passwd #{node['glassfish']['user']}"
   not_if { node.windows? }
   not_if { node['install']['external_users'].casecmp("true") == 0 }
 end
