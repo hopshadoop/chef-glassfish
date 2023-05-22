@@ -36,7 +36,7 @@ action :create do
   end
 
   properties.each_pair do |key, value|
-    variable = "configs.config.server-config.security-service.auth-realm.#{new_resource.name}.property.#{key}"
+    variable = "configs.config.#{new_resource.target}.security-service.auth-realm.#{new_resource.name}.property.#{key}"
     glassfish_property "#{variable}=#{value}" do
       domain_name new_resource.domain_name
       admin_port new_resource.admin_port
