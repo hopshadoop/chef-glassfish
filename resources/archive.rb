@@ -79,7 +79,7 @@ attribute :group, :kind_of => [String, Fixnum], :default => 0
 #<> @attribute mode The permissions on the container directory and created artifacts.
 attribute :mode, :kind_of => String, :default => '0700'
 #<> @attribute umask The umask used when setting up the archive.
-attribute :umask, :kind_of => String, :default => nil
+attribute :umask, :kind_of => String, :default => '022'
 
 #<> @attribute prefix The directory in which the archive is unpacked.
 attribute :prefix, :kind_of => [String, NilClass], :default => nil

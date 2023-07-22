@@ -64,7 +64,7 @@ class Chef
       end
     end
 
-    def self.pipe_filter(node, pattern, regexp: true, line: false)
+    def pipe_filter(pattern, regexp = true, line = false)
       case node['os']
       when 'linux'
         switches = [
@@ -79,10 +79,6 @@ class Chef
         ]
         "findstr #{switches.join(' ')} \"#{pattern}\""
       end
-    end
-
-    def pipe_filter(pattern, regexp: true, line: false)
-      Asadmin.pipe_filter(node, pattern, regexp: regexp, line: line)
     end
 
     def asadmin_command(command, remote_command = true, params = {})
